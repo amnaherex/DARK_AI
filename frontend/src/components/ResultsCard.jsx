@@ -31,18 +31,6 @@ const ResultsCard = ({ results, onClear }) => {
 
   return (
     <div className="animate-in fade-in duration-500 w-full max-w-md">
-      {/* Header Row */}
-      <div className="flex justify-between items-center mb-4 px-1">
-        <h3 className="text-[10px] font-bold tracking-[0.08em] uppercase text-slate-500">
-          Patterns Detected
-        </h3>
-        <button 
-          onClick={onClear}
-          className="text-[10px] font-bold tracking-widest uppercase py-1 px-3 bg-white border border-slate-200 rounded-full hover:bg-slate-50 transition-colors"
-        >
-          Clear
-        </button>
-      </div>
 
       <div className="results-stack flex flex-col gap-[12px]">
         {categories.map((cat) => {

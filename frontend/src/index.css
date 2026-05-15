@@ -44,3 +44,31 @@ body::before {
   pointer-events: none;
   z-index: 0;
 }
+
+
+::-webkit-scrollbar {
+  width: 5px; 
+}
+
+
+::-webkit-scrollbar-track {
+  background: transparent; 
+}
+
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.1); 
+  border-radius: 20px; /* Rounded corners */
+  border: 1px solid transparent; 
+}
+
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.2); 
+}
+
+/* Firefox ke liye (limited support) */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.1) transparent;
+}
