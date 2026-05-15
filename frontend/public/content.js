@@ -1,5 +1,11 @@
 // content.js — Runs on every webpage
 // Scrapes text, sends to Flask API, highlights deceptive patterns
+console.log("🔥 Content script loaded");
+console.log("🔥 Content script loaded");
+console.log("🔥 Content script loaded");
+console.log("🔥 Content script loaded");
+console.log("🔥 Content script loaded");
+console.log("🔥 Content script loaded");
 
 if (typeof window.dpdLoaded === 'undefined') {
 window.dpdLoaded = true;
