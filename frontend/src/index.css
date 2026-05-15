@@ -1,0 +1,16 @@
+@import "tailwindcss";
+
+/* Minimal custom scrollbar for the popup */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-thumb {
+  background: #e5e7eb;
+  border-radius: 10px;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
