@@ -48,7 +48,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
       sendResponse({
         success: false,
-        error: lastError?.message || 'Could not connect to API'
+        error: lastError?.message || 'Could not connect to API at localhost:5000 or 127.0.0.1:5000. Make sure Flask is running.'
       });
     })();
 

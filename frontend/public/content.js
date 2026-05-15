@@ -28,7 +28,7 @@ function predictBatchViaBackground(texts) {
       }
 
       if (!response) {
-        reject(new Error('No response from extension service worker'));
+        reject(new Error('Extension service worker did not respond. Try reloading the extension.'));
         return;
       }
 
