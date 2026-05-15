@@ -10,8 +10,6 @@ console.log("🔥 Content script loaded");
 if (typeof window.dpdLoaded === 'undefined') {
 window.dpdLoaded = true;
 
-const API_URL = 'http://localhost:5000';
-
 const COLORS = {
   scarcity:     { bg: 'rgba(239,68,68,0.25)',   border: '#EF4444', label: '🔴 Fake Scarcity'     },
   urgency:      { bg: 'rgba(249,115,22,0.25)',  border: '#F97316', label: '🟠 Fake Urgency'      },
@@ -20,6 +18,29 @@ const COLORS = {
 
 let highlightedNodes = [];
 let isAnalyzing = false;
+
+function predictBatchViaBackground(texts) {
+  return new Promise((resolve, reject) => {
+    chrome.runtime.sendMessage({ type: 'PREDICT_BATCH', texts }, (response) => {
+      if (chrome.runtime.lastError) {
+        reject(new Error(chrome.runtime.lastError.message));
+        return;
+      }
+
+      if (!response) {
+        reject(new Error('Extension service worker did not respond. Try reloading the extension.'));
+        return;
+      }
+
+      if (!response.success) {
+        reject(new Error(response.error || 'Unknown API error'));
+        return;
+      }
+
+      resolve(response.data);
+    });
+  });
+}
 
 // ─────────────────────────────────────────────
 // EXTRACT TEXT NODES FROM PAGE
@@ -126,14 +147,7 @@ async function analyzePage() {
     for (let i = 0; i < uniqueTexts.length; i += BATCH_SIZE) {
       const batch = uniqueTexts.slice(i, i + BATCH_SIZE);
       try {
-        const response = await fetch(`${API_URL}/predict_batch`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ texts: batch })
-        });
-
-        if (!response.ok) throw new Error(`API error: ${response.status}`);
-        const data = await response.json();
+        const data = await predictBatchViaBackground(batch);
 
         data.results.forEach(item => {
           allResults[item.text] = item.result;
