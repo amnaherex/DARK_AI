@@ -45,7 +45,7 @@ export const useScanner = () => {
 
         chrome.storage.local.get(["scanHistory"], (data) => {
           const history = data.scanHistory || [];
-          // Sirf top 10 scans save rakhte hain
+          
           chrome.storage.local.set({
             scanHistory: [newEntry, ...history].slice(0, 10),
           });
