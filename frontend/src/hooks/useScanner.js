@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 export const useScanner = () => {
-  const [status, setStatus] = useState("idle"); // idle, scanning, success, error
+  const [status, setStatus] = useState("idle");
   const [results, setResults] = useState(null);
   const [error, setError] = useState("");
 
@@ -27,8 +27,29 @@ export const useScanner = () => {
           return;
         }
 
-        setResults(response.breakdown);
+        const breakdown = response.breakdown;
+        setResults(breakdown);
         setStatus("success");
+
+        // Real Data Save Logic for Analytics & History
+        const totalFound = Object.values(breakdown).reduce((a, b) => a + b, 0);
+        const newEntry = {
+          url: new URL(tab.url).hostname,
+          date: new Date().toLocaleDateString("en-GB", {
+            day: "numeric",
+            month: "short",
+          }),
+          breakdown: breakdown,
+          total: totalFound,
+        };
+
+        chrome.storage.local.get(["scanHistory"], (data) => {
+          const history = data.scanHistory || [];
+          // Sirf top 10 scans save rakhte hain
+          chrome.storage.local.set({
+            scanHistory: [newEntry, ...history].slice(0, 10),
+          });
+        });
       });
     } catch (err) {
       setError(err.message);

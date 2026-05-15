@@ -1,16 +1,46 @@
+/* 1. Google Fonts MUST be first */
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap');
+
+/* 2. Tailwind */
 @import "tailwindcss";
 
-/* Minimal custom scrollbar for the popup */
-::-webkit-scrollbar {
-  width: 4px;
-}
-::-webkit-scrollbar-thumb {
-  background: #e5e7eb;
-  border-radius: 10px;
+/* 3. Theme */
+@theme {
+  --font-sans: "DM Sans", ui-sans-serif, system-ui;
+  --font-serif: "DM Serif Display", ui-serif, Georgia;
+
+  --color-pattern-text: #0f1623;
+  --color-pattern-muted: #64748b;
+  --color-pattern-light: #94a3b8;
+  --color-urgency: #e8734a;
+  --color-social: #c9a227;
+  --color-scarcity: #d94f4f;
+  --color-hidden: #7c6af7;
+
+  --color-surface: rgba(255, 255, 255, 0.65);
+  --color-border-sub: rgba(180, 188, 210, 0.4);
+
+  --radius-pattern: 20px;
+  --radius-app: 28px;
 }
 
-body {
-  margin: 0;
-  padding: 0;
-  overflow-x: hidden;
+/* 4. Base styles */
+@layer base {
+  body {
+    min-height: 100vh;
+    font-family: var(--font-sans);
+    color: var(--color-pattern-text);
+    background: linear-gradient(135deg, #dde3f0 0%, #eceef8 55%, #d8dcf0 100%);
+    margin: 0;
+  }
+}
+
+/* 5. Noise */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
 }

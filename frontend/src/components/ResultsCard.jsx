@@ -1,81 +1,75 @@
 import React from "react";
-import { motion } from "framer-motion";
 
 const ResultsCard = ({ results }) => {
-  const total = Object.values(results).reduce((a, b) => a + b, 0);
+  const categories = [
+    {
+      id: "urgency",
+      name: "Fake Urgency",
+      sub: "Artificial time pressure tactics",
+      color: "urgency",
+    },
+    {
+      id: "social",
+      name: "Fake Social Proof",
+      sub: "Misleading popularity claims",
+      color: "social",
+    },
+    {
+      id: "scarcity",
+      name: "False Scarcity",
+      sub: "Fabricated low-stock warnings",
+      color: "scarcity",
+    },
+  ];
 
-  if (total === 0) {
-    return (
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="text-center p-6 bg-emerald-50/50 backdrop-blur-sm rounded-2xl border border-emerald-100 mt-4"
-      >
-        <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-3">
-          <span className="text-2xl">🛡️</span>
-        </div>
-        <h3 className="text-emerald-800 font-bold">Secure Browsing</h3>
-        <p className="text-emerald-600 text-xs mt-1">
-          No deceptive patterns detected on this page.
-        </p>
-      </motion.div>
-    );
-  }
+  const totalFound = results
+    ? Object.values(results).reduce((a, b) => a + b, 0)
+    : 0;
 
   return (
-    <div className="space-y-4 mt-4">
-      <motion.div
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        className="bg-gradient-to-br from-red-500 to-orange-600 p-5 rounded-2xl text-white shadow-lg relative overflow-hidden"
-      >
-        <div className="relative z-10">
-          <span className="text-4xl font-black">{total}</span>
-          <p className="text-[10px] font-bold uppercase tracking-[2px] opacity-80">
-            Potential Traps Detected
-          </p>
-        </div>
-        {/* Decorative Circle */}
-        <div className="absolute -right-4 -top-4 w-24 h-24 bg-white/10 rounded-full blur-2xl"></div>
-      </motion.div>
-
-      <div className="space-y-2">
-        {Object.entries(results).map(([key, value], index) => {
-          if (value === 0) return null;
+    <div className="animate-in fade-in duration-500">
+      <div className="results-stack flex flex-col gap-[10px]">
+        {categories.map((cat) => {
+          const count = results ? results[cat.id] || 0 : 0;
           return (
-            <motion.div
-              key={key}
-              initial={{ x: -20, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              transition={{ delay: index * 0.1 }}
-              className="group p-3 bg-white border border-gray-100 rounded-xl hover:border-indigo-200 transition-colors shadow-sm"
+            <div
+              key={cat.id}
+              className={`pattern-card group ${cat.color} bg-white/72 border border-white/90 rounded-pattern p-[17px_18px] flex items-center gap-[13px] relative overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-lg`}
             >
-              <div className="flex justify-between items-center mb-1">
-                <span className="capitalize text-xs font-bold text-gray-600 tracking-wide">
-                  {key.replace("_", " ")}
+              <div className="dot w-[9px] h-[9px] rounded-full shrink-0"></div>
+              <div className="card-text flex-1">
+                <span className="p-name block text-[13px] font-semibold mb-0.5">
+                  {cat.name}
                 </span>
-                <span className="text-xs font-black text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">
-                  {value}
+                <span className="p-sub text-[11.5px] text-pattern-muted">
+                  {cat.sub}
                 </span>
               </div>
-              {/* Animated Progress Bar */}
-              <div className="w-full bg-gray-100 h-1.5 rounded-full overflow-hidden">
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: `${Math.min(value * 20, 100)}%` }}
-                  transition={{ duration: 1, ease: "easeOut" }}
-                  className={`h-full rounded-full ${
-                    key === "scarcity"
-                      ? "bg-red-500"
-                      : key === "urgency"
-                        ? "bg-orange-500"
-                        : "bg-yellow-500"
-                  }`}
-                />
-              </div>
-            </motion.div>
+              <span
+                className={`p-count font-serif text-[28px] leading-none ${count === 0 ? "text-pattern-light" : "text-pattern-text"}`}
+              >
+                {count}
+              </span>
+            </div>
           );
         })}
+      </div>
+
+      <div className="summary-box mt-[18px] bg-black/5 border border-border-sub rounded-pattern p-[18px_20px] flex justify-between items-center">
+        <div>
+          <div className="sum-label text-[10px] font-semibold tracking-widest uppercase text-pattern-muted mb-2">
+            Total Patterns
+          </div>
+          <div className="progress-track w-[110px] h-1 bg-black/10 rounded-full overflow-hidden">
+            <div
+              className="progress-fill h-full bg-pattern-text transition-all duration-700"
+              style={{ width: `${Math.min(totalFound * 5, 100)}%` }}
+            ></div>
+          </div>
+        </div>
+        <span className="total-n font-serif text-[44px] leading-none">
+          {totalFound}
+        </span>
       </div>
     </div>
   );
