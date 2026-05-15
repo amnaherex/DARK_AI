@@ -32,8 +32,8 @@ function predictBatchViaBackground(texts) {
         return;
       }
 
-      if (!response?.success) {
-        reject(new Error(response?.error || 'Unknown API error'));
+      if (!response.success) {
+        reject(new Error(response.error || 'Unknown API error'));
         return;
       }
 
