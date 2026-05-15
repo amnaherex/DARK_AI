@@ -27,6 +27,11 @@ function predictBatchViaBackground(texts) {
         return;
       }
 
+      if (!response) {
+        reject(new Error('No response from extension service worker'));
+        return;
+      }
+
       if (!response?.success) {
         reject(new Error(response?.error || 'Unknown API error'));
         return;
