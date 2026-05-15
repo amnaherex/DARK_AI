@@ -1,19 +1,29 @@
 {
   "manifest_version": 3,
   "name": "Deceptive Pattern Detector",
-  "version": "1.0.1",
-  "permissions": ["activeTab", "scripting", "storage", "tabs"],
-  "host_permissions": ["http://localhost:5000/*", "<all_urls>"],
+  "version": "1.0.0",
+  "description": "Detects fake scarcity, urgency, and social proof on websites using AI",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage"
+  ],
+  "host_permissions": [
+    "http://localhost:5000/*", 
+    "<all_urls>"
+  ],
   "action": {
-    "default_popup": "index.html"
+    "default_popup": "index.html",
+    "default_title": "Deceptive Pattern Detector"
   },
   "background": {
     "service_worker": "background.js"
   },
   "content_scripts": [
   {
-    "matches": ["http://localhost/*", "https://localhost/*"],
-    "js": ["content.js"]
+    "matches": ["<all_urls>"],
+    "js": ["content.js"],
+    "run_at": "document_idle"
   }
 ]
 }

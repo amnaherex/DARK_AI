@@ -2,10 +2,10 @@
 // Scrapes text, sends to Flask API, highlights deceptive patterns
 console.log("🔥 Content script loaded");
 console.log("🔥 Content script loaded");
-console.log("🔥 Content script loaded");
-console.log("🔥 Content script loaded");
-console.log("🔥 Content script loaded");
-console.log("🔥 Content script loaded");
+
+chrome.runtime.onMessage.addListener((message) => {
+  console.log("📩 Message received:", message);
+});
 
 if (typeof window.dpdLoaded === 'undefined') {
 window.dpdLoaded = true;
@@ -137,6 +137,7 @@ async function analyzePage() {
 
         data.results.forEach(item => {
           allResults[item.text] = item.result;
+          console.log("Connected to API");
         });
       } catch (fetchError) {
         isAnalyzing = false;
