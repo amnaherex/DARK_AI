@@ -5,11 +5,8 @@ import re
 import os
 
 app = Flask(__name__)
-CORS(app)  # Allow Chrome extension to call this API
+CORS(app)  
 
-# ─────────────────────────────────────────────
-# LOAD MODEL FILES (from Person 1)
-# ─────────────────────────────────────────────
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 print("Loading model files...")
@@ -28,9 +25,6 @@ except FileNotFoundError as e:
     vectorizer = None
     int_to_label = {0: 'not_deceptive', 1: 'scarcity', 2: 'urgency', 3: 'social_proof'}
 
-# ─────────────────────────────────────────────
-# HELPERS
-# ─────────────────────────────────────────────
 CATEGORY_INFO = {
     'scarcity': {
         'label': 'Fake Scarcity',
@@ -58,6 +52,13 @@ CATEGORY_INFO = {
     }
 }
 
+# Baseline defensive whitelists for standard legal text structures
+WHITELISTED_PHRASES = [
+    "privacy policy", "terms and conditions", "terms of service", "terms of use",
+    "all rights reserved", "limited warranty", "return policy", "refund policy",
+    "cookie preferences", "cookie policy", "contact us", "about us"
+]
+
 def preprocess_text(text):
     text = str(text).lower()
     text = re.sub(r'http\S+|www\S+', '', text)
@@ -71,32 +72,87 @@ def split_into_sentences(text):
     sentences = [s.strip() for s in sentences if len(s.strip()) > 5]
     return sentences
 
+# HYBRID PREDICTION ENGINE WITH BALANCED PRODUCTION TOLERANCE
 def predict_text(text):
-    """Run prediction on a single piece of text."""
+    """Run pipeline check using heuristics + tightened machine learning tolerance fallback."""
     if not model or not vectorizer:
         return {
-            'category': 'error',
-            'label': 'Model not loaded',
-            'confidence': 0,
-            'color': '#gray',
-            'emoji': '❌',
-            'description': 'Model files missing'
+            'category': 'error', 'label': 'Model not loaded', 'confidence': 0,
+            'color': '#gray', 'emoji': 'X', 'description': 'Model files missing'
         }
     
     clean = preprocess_text(text)
     if not clean:
         return None
-    
-    vec = vectorizer.transform([clean])
-    pred_int = model.predict(vec)[0]
-    proba = model.predict_proba(vec)[0]
-    confidence = float(proba[pred_int]) * 100
-    category = int_to_label[pred_int]
 
-    # Confidence threshold — ignore weak predictions to reduce false positives
-    if category != 'not_deceptive' and confidence < 40:
-        category = 'not_deceptive'
-        pred_int = 0
+    text_lower = text.lower()
+    
+    # Initialize developer metrics dictionary for transparency auditing
+    developer_metrics = {
+        "pipeline_layer": "unknown",
+        "raw_preprocessed_input": clean,
+        "top_contributing_features": []
+    }
+    
+    # LAYER 0: Whitelist Intercept (Immediate protection)
+    if any(phrase in text_lower for phrase in WHITELISTED_PHRASES):
+        developer_metrics["pipeline_layer"] = "layer_0_whitelist_intercept"
+        developer_metrics["top_contributing_features"] = [p for p in WHITELISTED_PHRASES if p in text_lower]
+        
+        info = CATEGORY_INFO['not_deceptive']
+        return {
+            'category': 'not_deceptive', 'label': info['label'], 'confidence': 100.0,
+            'color': info['color'], 'emoji': info['emoji'], 'description': 'Administrative boilerplate / Whitelisted safe text',
+            'developer_metrics': developer_metrics
+        }
+
+ 
+    # LAYER 1: Heuristic Keyword Intercept (Guarantees live popup catches)
+   
+    heuristic_triggered = False
+    category = 'not_deceptive'
+    confidence = 95.0
+    
+    social_words = ['purchased', 'just ordered', 'bought', 'people added', 'viewing this']
+    scarcity_words = ['left in stock', 'limited stock', 'items left', 'only a few left', 'only 3 left', 'only 2 left']
+    urgency_words = ['ends soon', 'offer ends', 'countdown', 'limited time only', 'ends in']
+
+    if any(word in text_lower for word in social_words):
+        category = 'social_proof'
+        heuristic_triggered = True
+        developer_metrics["pipeline_layer"] = "layer_1_heuristic_social_proof"
+        developer_metrics["top_contributing_features"] = [w for w in social_words if w in text_lower]
+    elif any(word in text_lower for word in scarcity_words):
+        category = 'scarcity'
+        heuristic_triggered = True
+        developer_metrics["pipeline_layer"] = "layer_1_heuristic_scarcity"
+        developer_metrics["top_contributing_features"] = [w for w in scarcity_words if w in text_lower]
+    elif any(word in text_lower for word in urgency_words):
+        category = 'urgency'
+        heuristic_triggered = True
+        developer_metrics["pipeline_layer"] = "layer_1_heuristic_urgency"
+        developer_metrics["top_contributing_features"] = [w for w in urgency_words if w in text_lower]
+
+    # LAYER 2: ML Fallback Pipeline (Runs if no keywords trigger)
+  
+    if not heuristic_triggered:
+        developer_metrics["pipeline_layer"] = "layer_2_ml_fallback"
+        
+        vec = vectorizer.transform([clean])
+        pred_int = model.predict(vec)[0]
+        proba = model.predict_proba(vec)[0]
+        confidence = float(proba[pred_int]) * 100
+        category = int_to_label[pred_int]
+
+        # Extract structural words that the vocabulary recognized
+        words_in_input = clean.split()
+        if hasattr(vectorizer, 'get_feature_names_out'):
+            vocab = set(vectorizer.get_feature_names_out())
+            matched_features = [w for w in words_in_input if w in vocab]
+            developer_metrics["top_contributing_features"] = matched_features[:4]
+
+        if category != 'not_deceptive' and confidence < 45:
+            category = 'not_deceptive'
 
     info = CATEGORY_INFO.get(category, CATEGORY_INFO['not_deceptive'])
     
@@ -106,89 +162,53 @@ def predict_text(text):
         'confidence': round(confidence, 1),
         'color': info['color'],
         'emoji': info['emoji'],
-        'description': info['description']
+        'description': info['description'],
+        'developer_metrics': developer_metrics
     }
 
-# ─────────────────────────────────────────────
 # ROUTES
-# ─────────────────────────────────────────────
 
 @app.route('/', methods=['GET'])
 def home():
     return jsonify({
         'status': 'running',
-        'message': 'Deceptive Pattern Detector API',
         'endpoints': {
-            '/predict': 'POST - Predict single text',
-            '/predict_batch': 'POST - Predict multiple sentences',
-            '/analyze_page': 'POST - Analyze full page text',
-            '/health': 'GET - Health check'
+            '/predict': 'POST', '/predict_batch': 'POST', '/analyze_page': 'POST', '/health': 'GET'
         }
     })
 
-
 @app.route('/health', methods=['GET'])
 def health():
-    return jsonify({
-        'status': 'ok',
-        'model_loaded': model is not None
-    })
-
+    return jsonify({'status': 'ok', 'model_loaded': model is not None})
 
 @app.route('/predict', methods=['POST'])
 def predict():
-    """
-    Predict a single text string.
-    Request body: { "text": "Only 2 left in stock!" }
-    """
     data = request.get_json()
-    
     if not data or 'text' not in data:
-        return jsonify({'error': 'Missing "text" field in request body'}), 400
+        return jsonify({'error': 'Missing "text" field'}), 400
     
     text = data['text'].strip()
-    if not text:
-        return jsonify({'error': 'Text cannot be empty'}), 400
-    
     result = predict_text(text)
     if not result:
         return jsonify({'error': 'Could not process text'}), 400
     
-    return jsonify({
-        'text': text,
-        'result': result
-    })
-
+    return jsonify({'text': text, 'result': result})
 
 @app.route('/predict_batch', methods=['POST'])
 def predict_batch():
-    """
-    Predict multiple texts at once.
-    Request body: { "texts": ["Only 2 left!", "Free shipping", "Order now!"] }
-    """
     data = request.get_json()
-    
     if not data or 'texts' not in data:
-        return jsonify({'error': 'Missing "texts" field in request body'}), 400
-    
-    texts = data['texts']
-    if not isinstance(texts, list):
-        return jsonify({'error': '"texts" must be a list'}), 400
+        return jsonify({'error': 'Missing "texts" field'}), 400
     
     results = []
-    for text in texts:
+    for text in data['texts']:
         text = str(text).strip()
         if len(text) > 3:
             result = predict_text(text)
             if result:
-                results.append({
-                    'text': text,
-                    'result': result
-                })
-    
-    # Filter only deceptive ones for summary
+                results.append({'text': text, 'result': result})
+                
     deceptive = [r for r in results if r['result']['category'] != 'not_deceptive']
-    
     return jsonify({
         'total_analyzed': len(results),
         'deceptive_found': len(deceptive),
@@ -196,42 +216,30 @@ def predict_batch():
         'deceptive_only': deceptive
     })
 
-
 @app.route('/analyze_page', methods=['POST'])
 def analyze_page():
-    """
-    Analyze full page text — splits into sentences automatically.
-    Request body: { "page_text": "Full page text here..." }
-    """
     data = request.get_json()
-    
     if not data or 'page_text' not in data:
         return jsonify({'error': 'Missing "page_text" field'}), 400
     
-    page_text = data['page_text']
-    sentences = split_into_sentences(page_text)
-    
+    sentences = split_into_sentences(data['page_text'])
     if not sentences:
-        return jsonify({'error': 'No sentences found in page text'}), 400
+        return jsonify({'error': 'No sentences found'}), 400
     
     results = []
     for sentence in sentences:
         result = predict_text(sentence)
         if result:
-            results.append({
-                'text': sentence,
-                'result': result
-            })
-    
+            results.append({'text': sentence, 'result': result})
+            
     deceptive = [r for r in results if r['result']['category'] != 'not_deceptive']
     
-    # Category summary
     summary = {'scarcity': 0, 'urgency': 0, 'social_proof': 0}
     for r in deceptive:
         cat = r['result']['category']
         if cat in summary:
             summary[cat] += 1
-    
+            
     return jsonify({
         'total_sentences': len(results),
         'deceptive_found': len(deceptive),
@@ -240,13 +248,9 @@ def analyze_page():
         'all_results': results
     })
 
-
-# ─────────────────────────────────────────────
-# RUN
-# ─────────────────────────────────────────────
 if __name__ == '__main__':
     print("\n" + "="*50)
-    print("Deceptive Pattern Detector API")
+    print("Deceptive Pattern Detector API (With 45% Tolerance Guardrail)")
     print("Running on: http://localhost:5000")
     print("="*50 + "\n")
     app.run(debug=True, host='0.0.0.0', port=5000)

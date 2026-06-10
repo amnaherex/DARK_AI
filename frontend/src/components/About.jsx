@@ -29,8 +29,7 @@ const About = () => {
     { name: "Fake Social Proof", color: "bg-social" },
     { name: "False Scarcity", color: "bg-scarcity" },
     { name: "Hidden Fees", color: "bg-hidden" },
-    // { name: "Roach Motels", color: "bg-[#38bdf8]" },
-    // { name: "Misdirection", color: "bg-[#f472b6]" },
+   
   ];
 
   return (

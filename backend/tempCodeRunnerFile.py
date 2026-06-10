@@ -11,8 +11,6 @@ from sklearn.metrics import (accuracy_score, classification_report,
                              confusion_matrix, ConfusionMatrixDisplay)
 from sklearn.utils import resample
 
-
-
 print("Loading dataset...")
 try:
     df = pd.read_csv("dark_patterns.csv", usecols=['text', 'Pattern Category'])
@@ -22,7 +20,7 @@ try:
     print(df['label'].value_counts())
 except FileNotFoundError:
     print("Dataset file not found. Creating a small sample dataset for testing...")
- 
+   
     sample_data = {
         "text": [
             "Only 2 left in stock!",
@@ -57,8 +55,8 @@ except FileNotFoundError:
     df.to_csv("dark_patterns.csv", index=False)
     print("Sample dataset created.")
 
-print("\nFiltering categories...")
 
+print("\nFiltering categories...")
 
 df['label'] = df['label'].str.lower().str.strip()
 
@@ -83,14 +81,11 @@ label_map = {
 df['label'] = df['label'].map(label_map)
 df = df.dropna(subset=['label'])
 
-# Keep only our 4 classes
+
 keep_labels = ['scarcity', 'urgency', 'social_proof', 'not_deceptive']
 df = df[df['label'].isin(keep_labels)]
 print(f"After filtering: {len(df)} rows")
 print(df['label'].value_counts())
-
-
-# 3. DATA PREPROCESSING
 
 def preprocess_text(text):
     text = str(text).lower()
@@ -101,10 +96,7 @@ def preprocess_text(text):
 
 print("\nPreprocessing text...")
 df['clean_text'] = df['text'].apply(preprocess_text)
-df = df[df['clean_text'].str.len() > 3]  # remove empty rows
-
-
-# 4. BALANCE DATASET (if needed)
+df = df[df['clean_text'].str.len() > 3]  
 
 min_count = df['label'].value_counts().min()
 max_count = df['label'].value_counts().max()
@@ -122,9 +114,6 @@ if max_count > min_count * 2:
     print(f"Balanced dataset: {len(df)} rows")
     print(df['label'].value_counts())
 
-
-# 5. ENCODE LABELS
-
 label_to_int = {
     'not_deceptive': 0,
     'scarcity': 1,
@@ -135,8 +124,6 @@ int_to_label = {v: k for k, v in label_to_int.items()}
 df['label_int'] = df['label'].map(label_to_int)
 
 
-# 6. TRAIN / TEST SPLIT
-
 X = df['clean_text']
 y = df['label_int']
 
@@ -146,20 +133,16 @@ X_train, X_test, y_train, y_test = train_test_split(
 print(f"\nTrain size: {len(X_train)} | Test size: {len(X_test)}")
 
 
-# 7. TF-IDF VECTORIZATION
-
 print("\nApplying TF-IDF vectorization...")
 vectorizer = TfidfVectorizer(
     max_features=5000,
-    ngram_range=(1, 2),   
+    ngram_range=(1, 2),  
     min_df=1,
     sublinear_tf=True
 )
 X_train_tfidf = vectorizer.fit_transform(X_train)
 X_test_tfidf = vectorizer.transform(X_test)
 
-
-# 8. TRAIN MODEL
 
 print("\nTraining Logistic Regression model...")
 model = LogisticRegression(
@@ -172,8 +155,6 @@ model.fit(X_train_tfidf, y_train)
 print("Training complete!")
 
 
-# 9. EVALUATE
-
 y_pred = model.predict(X_test_tfidf)
 accuracy = accuracy_score(y_test, y_pred)
 
@@ -182,10 +163,6 @@ print(f"MODEL ACCURACY: {accuracy * 100:.2f}%")
 print(f"{'='*50}")
 print("\nClassification Report:")
 target_names = ['not_deceptive', 'scarcity', 'urgency', 'social_proof']
-print(classification_report(y_test, y_pred, target_names=target_names))
-
-
-# 10. CONFUSION MATRIX PLOT
 
 print("\nGenerating confusion matrix...")
 cm = confusion_matrix(y_test, y_pred)
@@ -199,8 +176,6 @@ plt.savefig('confusion_matrix.png', dpi=150)
 plt.close()
 print("Saved: confusion_matrix.png")
 
-
-# 11. LABEL DISTRIBUTION PLOT
 
 plt.figure(figsize=(8, 5))
 colors = ['#4CAF50', '#F44336', '#FF9800', '#2196F3']
@@ -217,8 +192,6 @@ plt.close()
 print("Saved: label_distribution.png")
 
 
-# 12. SAVE MODEL + VECTORIZER
-
 print("\nSaving model and vectorizer...")
 with open('model.pkl', 'wb') as f:
     pickle.dump(model, f)
@@ -230,8 +203,6 @@ with open('label_map.pkl', 'wb') as f:
 print("Saved: model.pkl, vectorizer.pkl, label_map.pkl")
 print("\nDone! Share these 3 .pkl files with Person 2 (Flask developer).")
 
-
-# 13. QUICK TEST
 
 print("\n--- Quick Prediction Test ---")
 test_sentences = [

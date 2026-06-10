@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body {
+      width: 250px;
+      padding: 16px;
+      font-family: system-ui, -apple-system, sans-serif;
+      text-align: center;
+      background-color: #f8fafc;
+      color: #0f1623;
+    }
+    h3 { margin-top: 0; font-size: 16px; }
+    button {
+      background-color: #0f1623;
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      font-weight: bold;
+      border-radius: 8px;
+      cursor: pointer;
+      width: 100%;
+    }
+    #results {
+      margin-top: 12px;
+      font-size: 13px;
+      text-align: left;
+      padding: 8px;
+      background: #f1f5f9;
+      border-radius: 6px;
+      display: none;
+      word-wrap: break-word;
+    }
+  </style>
+</head>
+<body>
+  <h3>🕵️‍♂️ Pattern Detector</h3>
+  <p style="font-size: 12px; color: #64748b;">Scan the page for manipulative dark patterns.</p>
+  <button id="scanBtn">Scan Page</button>
+  <div id="results">Scanning...</div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
